@@ -1,101 +1,114 @@
-import Image from "next/image";
+"use client"
+import { useState, useEffect } from 'react';
 
-export default function Home() {
+let webSocket: WebSocket;
+if (typeof window !== "undefined") {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+
+  webSocket = new WebSocket(`${protocol}//${window.location.host}/api/ws`);
+  setInterval(() => {
+    if (webSocket.readyState !== webSocket.OPEN) {
+      webSocket = new WebSocket(`${protocol}//${window.location.host}/api/ws`);
+      return;
+    }
+
+    webSocket.send(`{"event":"ping"}`);
+  }, 29000);
+}
+
+interface Message {
+  user: string;
+  text: string;
+  timestamp: string;
+}
+
+const Index = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [user] = useState(() => (Math.random() > 0.5 ? 'User 1' : 'User 2'));
+
+  useEffect(() => {
+    webSocket.onmessage = (event) => {
+      if (event.data === "connection established") return;
+      const messageData = JSON.parse(event.data);
+      setMessages((prevMessages) => [...prevMessages, messageData]);
+    };
+  }, []);
+
+  const sendMessage = () => {
+    if (newMessage.trim() === '') return;
+    const message = {
+      user,
+      text: newMessage,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+    webSocket.send(JSON.stringify(message));
+    setNewMessage('');
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen flex flex-col items-center bg-gray-100">
+      <h1 className="text-3xl font-bold text-blue-600 mt-8">Real-Time Chat</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="w-full max-w-3xl mt-6 flex flex-col bg-white shadow-md rounded-lg">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 h-96 border-b border-gray-300">
+          {messages.length === 0 && (
+            <div className="text-gray-500 text-center">No messages yet.</div>
+          )}
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`flex items-start ${message.user === 'User 1' ? 'justify-start' : 'justify-end'}`}
+            >
+              <div className="flex items-start space-x-3 max-w-[60%]">
+                {message.user === 'User 1' && (
+                  <img
+                    src={`https://api.dicebear.com/6.x/personas/svg?seed=${message.user}`}
+                    alt="Avatar"
+                    className="w-10 h-10 rounded-full"
+                  />
+                )}
+                <div>
+                  <div className="font-semibold text-sm text-gray-700">{message.user}</div>
+                  <div
+                    className={`p-2 rounded-lg break-words ${message.user === 'User 1'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-200 text-gray-800'
+                      }`}
+                  >
+                    {message.text}
+                  </div>
+                  <div className="text-xs text-gray-500">{message.timestamp}</div>
+                </div>
+                {message.user === 'User 2' && (
+                  <img
+                    src={`https://api.dicebear.com/6.x/personas/svg?seed=${message.user}`}
+                    alt="Avatar"
+                    className="w-10 h-10 rounded-full"
+                  />
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div className="p-4 flex items-center bg-gray-50">
+          <input
+            type="text"
+            className="flex-1 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none text-black"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type your message..."
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <button
+            onClick={sendMessage}
+            className="ml-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+          >
+            Send
+          </button>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default Index;
