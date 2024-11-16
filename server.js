@@ -4,9 +4,9 @@ const express = require("express");
 const next = require('next');
 const WebSocket = require('ws');
 const { WebSocketServer } = require('ws');
-
+const port = process.env.PORT || 3000;
 const app = express();
-const server = app.listen(3000);
+const server = app.listen(port);
 const wss = new WebSocketServer({ noServer: true });
 const nextApp = next({ dev: process.env.NODE_ENV !== "production" });
 const clients = new Set();
