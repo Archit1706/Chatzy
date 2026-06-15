@@ -7,13 +7,13 @@ import ChatMessages from "@/components/ChatMessages";
 import MessageInput from "@/components/MessageInput";
 import AvatarModal from "@/components/AvatarModal";
 import useChatWebSocket from "@/hooks/useChatWebSocket";
+import { Message, ReplyRef } from "@/types";
 
 const Index = () => {
   const [user] = useState(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      const userParam = params.get("user") || "User1";
-      return userParam;
+      return params.get("user") || "User1";
     }
     return "User1";
   });
@@ -27,6 +27,8 @@ const Index = () => {
   const [ttl, setTtl] = useState<number>(0);
   const [soundOn, setSoundOn] = useState<boolean>(true);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [replyTo, setReplyTo] = useState<ReplyRef | null>(null);
 
   const lastTypingTimeRef = useRef<number>(0);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -43,9 +45,15 @@ const Index = () => {
     setReadMessageIds,
     userAvatars,
     setUserAvatars,
+    connectionStatus,
   } = useChatWebSocket(user, otherUser);
 
-  // Play a short beep on incoming messages from others
+  useEffect(() => {
+    // Reflect Tailwind `dark:` styling on <html> too (for scrollbars, body bg)
+    if (typeof document === "undefined") return;
+    document.documentElement.classList.toggle("dark", darkMode);
+  }, [darkMode]);
+
   const playBeep = () => {
     if (!soundOn || typeof window === "undefined") return;
     try {
@@ -63,12 +71,11 @@ const Index = () => {
       osc.stop(ctx.currentTime + 0.12);
       osc.onended = () => ctx.close();
     } catch {
-      // ignore audio errors
+      // ignore
     }
   };
 
   useEffect(() => {
-    // Detect newly arrived messages from the other user
     if (messages.length > prevMessageCountRef.current) {
       const fresh = messages.slice(prevMessageCountRef.current);
       const incoming = fresh.filter((m) => m.user !== user);
@@ -82,14 +89,12 @@ const Index = () => {
     prevMessageCountRef.current = messages.length;
   }, [messages, user, soundOn]);
 
-  // Reflect unread count in the document title
   useEffect(() => {
     if (typeof document === "undefined") return;
     const base = `Chatzy — chat with ${otherUser}`;
     document.title = unreadCount > 0 ? `(${unreadCount}) ${base}` : base;
   }, [unreadCount, otherUser]);
 
-  // Clear unread badge when tab becomes visible
   useEffect(() => {
     if (typeof document === "undefined") return;
     const onVisible = () => {
@@ -128,13 +133,18 @@ const Index = () => {
       id: generateUniqueId(),
       user,
       text: newMessage,
-      timestamp: new Date().toLocaleTimeString(),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       ttl: ttl > 0 ? ttl : undefined,
+      replyTo: replyTo || undefined,
     };
     if (webSocket && webSocket.readyState === WebSocket.OPEN) {
       webSocket.send(JSON.stringify(message));
     }
     setNewMessage("");
+    setReplyTo(null);
   };
 
   const sendReaction = (messageId: string, emoji: string) => {
@@ -151,6 +161,10 @@ const Index = () => {
     }
   };
 
+  const startReply = (msg: Message) => {
+    setReplyTo({ id: msg.id, user: msg.user, text: msg.text });
+  };
+
   const changeAvatar = (newAvatarSeed: string) => {
     setUserAvatars((prev) => ({ ...prev, [user]: newAvatarSeed }));
     if (webSocket && webSocket.readyState === WebSocket.OPEN) {
@@ -163,7 +177,7 @@ const Index = () => {
 
   return (
     <div className={`${darkMode ? "dark" : ""}`}>
-      <div className="min-h-screen flex flex-col items-center bg-gray-100 dark:bg-gray-900">
+      <div className="min-h-screen flex flex-col items-center">
         <ChatHeader
           otherUser={otherUser}
           onlineUsers={onlineUsers}
@@ -172,28 +186,45 @@ const Index = () => {
           soundOn={soundOn}
           setSoundOn={setSoundOn}
           onClearChat={clearChat}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          connectionStatus={connectionStatus}
+          userAvatar={userAvatars[user] || user}
+          onAvatarClick={() => {
+            setModalUser(user);
+            setShowModal(true);
+          }}
         />
-        <div className="w-full max-w-3xl mt-6 flex flex-col bg-white dark:bg-gray-800 shadow-md rounded-lg">
-          <ChatMessages
-            messages={messages}
-            user={user}
-            typingUsers={typingUsers}
-            chatContainerRef={chatContainerRef}
-            userAvatars={userAvatars}
-            setModalUser={setModalUser}
-            setShowModal={setShowModal}
-            onReact={sendReaction}
-          />
-          <MessageInput
-            newMessage={newMessage}
-            setNewMessage={setNewMessage}
-            sendMessage={sendMessage}
-            lastTypingTimeRef={lastTypingTimeRef}
-            user={user}
-            webSocket={webSocket}
-            ttl={ttl}
-            setTtl={setTtl}
-          />
+        <div className="w-full max-w-3xl mt-4 px-4">
+          <div className="flex flex-col bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200/60 dark:border-slate-700/60 shadow-sm rounded-2xl overflow-hidden">
+            <ChatMessages
+              messages={messages}
+              user={user}
+              typingUsers={typingUsers}
+              chatContainerRef={chatContainerRef}
+              userAvatars={userAvatars}
+              setModalUser={setModalUser}
+              setShowModal={setShowModal}
+              onReact={sendReaction}
+              onReply={startReply}
+              searchQuery={searchQuery}
+            />
+            <MessageInput
+              newMessage={newMessage}
+              setNewMessage={setNewMessage}
+              sendMessage={sendMessage}
+              lastTypingTimeRef={lastTypingTimeRef}
+              user={user}
+              webSocket={webSocket}
+              ttl={ttl}
+              setTtl={setTtl}
+              replyTo={replyTo}
+              clearReply={() => setReplyTo(null)}
+            />
+          </div>
+          <p className="text-center text-[11px] text-slate-400 dark:text-slate-500 mt-3 mb-6">
+            🔒 Chatzy is ephemeral. Messages are never stored on the server.
+          </p>
         </div>
         <AvatarModal
           showModal={showModal}
