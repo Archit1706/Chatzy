@@ -1,23 +1,44 @@
-# Chatzy - Real-Time Chat Application
+# Chatzy — Ephemeral Real-Time Chat
 
-Chatzy is a modern real-time chat application built with Next.js and WebSocket technology. It features a clean, responsive interface with support for real-time messaging, typing indicators, read receipts, and customizable avatars.
+> 🔒 Nothing is saved on the server. Messages live only inside your session.
+
+**Live demo:** [https://chatzy-4x9n.onrender.com](https://chatzy-4x9n.onrender.com)
+
+Chatzy is a modern, minimalistic real-time chat app built with Next.js and WebSocket. It pairs a clean, glass-style UI with a privacy-first ephemeral model — no database, no logs, no storage.
 
 ## ✨ Features
 
-- **Real-time Communication**: Instant message delivery using WebSocket technology
-- **Ephemeral by Design**: Nothing is persisted on the server — messages live only in active sessions
-- **Self-Destruct Timer**: Optional per-message TTL (10s / 30s / 1m / 5m) with live countdown
-- **Emoji Reactions**: React to any message with quick emojis; tap again to remove
-- **Emoji Picker**: Insert emojis directly into your messages
-- **Clear Chat**: Wipe the conversation for everyone with one click
-- **Sound Notifications**: Subtle beep on incoming messages (toggleable)
-- **Unread Badge**: Tab title shows unread count when the window is hidden
-- **Typing Indicators**: See when other users are typing
-- **Read Receipts**: Know when your messages have been read
-- **Online Status**: Track user online/offline status in real-time
-- **Dark Mode**: Toggle between light and dark themes
-- **Customizable Avatars**: Choose and customize your avatar from multiple options
-- **Responsive Design**: Works seamlessly across desktop and mobile devices
+### Privacy & ephemerality
+- **Zero-persistence server** — messages are relayed in-memory only
+- **Per-message self-destruct** — choose Off / 10s / 30s / 1m / 5m with a live countdown
+- **Clear chat** — wipe the conversation for everyone with one click
+- **Connection status pill** — see Connecting / Connected / Offline at a glance
+
+### Messaging
+- **Real-time delivery** over WebSocket
+- **Reply to messages** with an inline quote preview
+- **Emoji reactions** with grouped counts; tap to toggle
+- **Emoji picker** in the composer
+- **Copy any message** to your clipboard with one click
+- **Search messages** with inline highlight
+- **Auto-grow textarea** — Enter to send, Shift+Enter for newline
+- **Character counter** (2000 chars per message)
+- **Typing indicators** with animated dots
+- **Read receipts** (✓ Delivered / ✓✓ Read)
+- **Unread badge** in the tab title when the window is hidden
+- **Sound notification** (toggleable) on incoming messages
+
+### Look & feel
+- **Minimalist modern UI** — slate palette, rounded-2xl surfaces, glass header, subtle gradient backdrop
+- **Smooth bubble entrance animation**
+- **Dark mode** toggle
+- **Customizable DiceBear avatars** with a redesigned profile modal (Esc to close)
+- **Fully responsive** across desktop and mobile
+
+### SEO & PWA polish
+- Full Open Graph + Twitter Card metadata
+- Canonical URL, robots, keywords, and theme-color
+- SVG favicon and web app manifest (installable)
 
 ## 🚀 Tech Stack
 
