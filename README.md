@@ -5,6 +5,13 @@ Chatzy is a modern real-time chat application built with Next.js and WebSocket t
 ## ✨ Features
 
 - **Real-time Communication**: Instant message delivery using WebSocket technology
+- **Ephemeral by Design**: Nothing is persisted on the server — messages live only in active sessions
+- **Self-Destruct Timer**: Optional per-message TTL (10s / 30s / 1m / 5m) with live countdown
+- **Emoji Reactions**: React to any message with quick emojis; tap again to remove
+- **Emoji Picker**: Insert emojis directly into your messages
+- **Clear Chat**: Wipe the conversation for everyone with one click
+- **Sound Notifications**: Subtle beep on incoming messages (toggleable)
+- **Unread Badge**: Tab title shows unread count when the window is hidden
 - **Typing Indicators**: See when other users are typing
 - **Read Receipts**: Know when your messages have been read
 - **Online Status**: Track user online/offline status in real-time
