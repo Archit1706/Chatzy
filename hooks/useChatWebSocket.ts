@@ -1,6 +1,6 @@
 // hooks/useChatWebSocket.ts
 import { useState, useEffect } from "react";
-import { ServerMessage, Message } from "../types";
+import { ServerMessage, Message, ConnectionStatus } from "../types";
 
 const useChatWebSocket = (user: string, otherUser: string) => {
     const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
@@ -8,6 +8,8 @@ const useChatWebSocket = (user: string, otherUser: string) => {
     const [typingUsers, setTypingUsers] = useState<{ [key: string]: number }>({});
     const [onlineUsers, setOnlineUsers] = useState<{ [key: string]: boolean }>({});
     const [readMessageIds, setReadMessageIds] = useState<string[]>([]);
+    const [connectionStatus, setConnectionStatus] =
+        useState<ConnectionStatus>("connecting");
     const [userAvatars, setUserAvatars] = useState<{ [key: string]: string }>({
         [user]: user,
         [otherUser]: otherUser,
@@ -18,10 +20,15 @@ const useChatWebSocket = (user: string, otherUser: string) => {
             const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
             const ws = new WebSocket(`${protocol}//${window.location.host}/api/ws`);
             setWebSocket(ws);
+            setConnectionStatus("connecting");
 
             ws.onopen = () => {
+                setConnectionStatus("connected");
                 ws.send(JSON.stringify({ event: "register", user }));
             };
+
+            ws.onclose = () => setConnectionStatus("disconnected");
+            ws.onerror = () => setConnectionStatus("disconnected");
 
             ws.onmessage = (event) => {
                 if (event.data === "connection established") return;
@@ -146,6 +153,7 @@ const useChatWebSocket = (user: string, otherUser: string) => {
         setReadMessageIds,
         userAvatars,
         setUserAvatars,
+        connectionStatus,
     };
 };
 
