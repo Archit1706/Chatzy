@@ -79,6 +79,7 @@ nextApp.prepare().then(() => {
           text: parsedMessage.text,
           timestamp: parsedMessage.timestamp,
           ttl: parsedMessage.ttl,
+          replyTo: parsedMessage.replyTo,
         });
 
         console.log(`Message received (ephemeral, not stored)`);
