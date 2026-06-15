@@ -4,6 +4,12 @@ export interface Reaction {
     user: string;
 }
 
+export interface ReplyRef {
+    id: string;
+    user: string;
+    text: string;
+}
+
 export interface Message {
     event: "message";
     id: string;
@@ -14,12 +20,15 @@ export interface Message {
     ttl?: number; // self-destruct in seconds, undefined = persistent (session only)
     expiresAt?: number; // computed local epoch ms when message should disappear
     reactions?: Reaction[];
+    replyTo?: ReplyRef;
 }
 
 export interface TypingEvent {
     event: "typing";
     user: string;
 }
+
+export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
 export type ServerMessage =
     | Message
