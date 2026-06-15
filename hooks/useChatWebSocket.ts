@@ -28,17 +28,19 @@ const useChatWebSocket = (user: string, otherUser: string) => {
                 const messageData: ServerMessage = JSON.parse(event.data);
 
                 if (messageData.event === "message") {
-                    setMessages((prevMessages) => [...prevMessages, messageData]);
+                    const incoming: Message = { ...messageData };
+                    if (incoming.ttl && incoming.ttl > 0) {
+                        incoming.expiresAt = Date.now() + incoming.ttl * 1000;
+                    }
+                    setMessages((prevMessages) => [...prevMessages, incoming]);
                 } else if (messageData.event === "typing") {
                     const typingUser = messageData.user;
                     if (typingUser !== user) {
                         setTypingUsers((prevTypingUsers) => {
                             const newTypingUsers = { ...prevTypingUsers };
-                            // Clear existing timeout if any
                             if (newTypingUsers[typingUser]) {
                                 clearTimeout(newTypingUsers[typingUser]);
                             }
-                            // Set a timeout to remove the typing indicator after 3 seconds
                             newTypingUsers[typingUser] = window.setTimeout(() => {
                                 setTypingUsers((prev) => {
                                     const updated = { ...prev };
@@ -50,7 +52,7 @@ const useChatWebSocket = (user: string, otherUser: string) => {
                         });
                     }
                 } else if (messageData.event === "read") {
-                    const { messageIds, user: readerUser } = messageData;
+                    const { messageIds } = messageData;
                     setMessages((prevMessages) =>
                         prevMessages.map((msg) => {
                             if (messageIds.includes(msg.id) && msg.user === user) {
@@ -79,6 +81,26 @@ const useChatWebSocket = (user: string, otherUser: string) => {
                 } else if (messageData.event === "avatar_change") {
                     const { user: changedUser, avatarSeed } = messageData;
                     setUserAvatars((prev) => ({ ...prev, [changedUser]: avatarSeed }));
+                } else if (messageData.event === "reaction") {
+                    const { messageId, emoji, user: reactor } = messageData;
+                    setMessages((prevMessages) =>
+                        prevMessages.map((msg) => {
+                            if (msg.id !== messageId) return msg;
+                            const reactions = msg.reactions ? [...msg.reactions] : [];
+                            const existing = reactions.findIndex(
+                                (r) => r.user === reactor && r.emoji === emoji
+                            );
+                            if (existing >= 0) {
+                                reactions.splice(existing, 1);
+                            } else {
+                                reactions.push({ emoji, user: reactor });
+                            }
+                            return { ...msg, reactions };
+                        })
+                    );
+                } else if (messageData.event === "clear") {
+                    setMessages([]);
+                    setReadMessageIds([]);
                 }
             };
 
@@ -91,13 +113,26 @@ const useChatWebSocket = (user: string, otherUser: string) => {
                 ws.send(`{"event":"ping"}`);
             }, 29000);
 
-            // Cleanup on component unmount
             return () => {
                 ws.close();
                 clearInterval(interval);
             };
         }
     }, [user, otherUser]);
+
+    // Sweep expired ephemeral messages
+    useEffect(() => {
+        const sweep = setInterval(() => {
+            const now = Date.now();
+            setMessages((prev) => {
+                const filtered = prev.filter(
+                    (m) => !m.expiresAt || m.expiresAt > now
+                );
+                return filtered.length === prev.length ? prev : filtered;
+            });
+        }, 1000);
+        return () => clearInterval(sweep);
+    }, []);
 
     return {
         webSocket,
