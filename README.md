@@ -2,7 +2,7 @@
 
 > 🔒 Nothing is saved on the server. Messages live only inside your session.
 
-**Live demo:** [https://chat247.vercel.app](https://chat247.vercel.app)
+**Live demo:** [https://chatzy-24x7.onrender.com](https://chatzy-24x7.onrender.com)
 
 Chatzy is a modern, minimalistic real-time chat app built with Next.js and WebSocket. It pairs a clean, glass-style UI with a privacy-first ephemeral model — no database, no logs, no storage.
 

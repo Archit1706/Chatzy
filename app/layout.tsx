@@ -13,7 +13,7 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const siteUrl = "https://chat247.vercel.app";
+const siteUrl = "https://chatzy-24x7.onrender.com";
 const description =
   "Chatzy is an ephemeral real-time chat: nothing is saved on the server. Self-destruct timers, emoji reactions, replies, dark mode, and a minimal modern UI.";
 
