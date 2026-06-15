@@ -78,12 +78,41 @@ nextApp.prepare().then(() => {
           user: parsedMessage.user,
           text: parsedMessage.text,
           timestamp: parsedMessage.timestamp,
+          ttl: parsedMessage.ttl,
         });
 
-        console.log(`Message received: ${broadcastMessage}`);
+        console.log(`Message received (ephemeral, not stored)`);
         clients.forEach(client => {
           if (client.readyState === WebSocket.OPEN) {
             client.send(broadcastMessage, { binary: isBinary });
+          }
+        });
+        return;
+      }
+
+      if (parsedMessage.event === "reaction") {
+        const reactionMessage = JSON.stringify({
+          event: "reaction",
+          messageId: parsedMessage.messageId,
+          emoji: parsedMessage.emoji,
+          user: parsedMessage.user,
+        });
+        clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(reactionMessage, { binary: isBinary });
+          }
+        });
+        return;
+      }
+
+      if (parsedMessage.event === "clear") {
+        const clearMessage = JSON.stringify({
+          event: "clear",
+          user: parsedMessage.user,
+        });
+        clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(clearMessage, { binary: isBinary });
           }
         });
         return;
