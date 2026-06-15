@@ -12,6 +12,7 @@ interface ChatMessagesProps {
     userAvatars: { [key: string]: string };
     setModalUser: React.Dispatch<React.SetStateAction<string | null>>;
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+    onReact: (messageId: string, emoji: string) => void;
 }
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({
@@ -22,6 +23,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     userAvatars,
     setModalUser,
     setShowModal,
+    onReact,
 }) => {
     return (
         <div
@@ -30,17 +32,18 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
         >
             {messages.length === 0 && (
                 <div className="text-gray-500 dark:text-gray-400 text-center">
-                    No messages yet.
+                    No messages yet. Nothing here is saved. 🔒
                 </div>
             )}
-            {messages.map((message, index) => (
+            {messages.map((message) => (
                 <MessageItem
-                    key={index}
+                    key={message.id}
                     message={message}
                     isOwnMessage={message.user === user}
                     userAvatars={userAvatars}
                     setModalUser={setModalUser}
                     setShowModal={setShowModal}
+                    onReact={onReact}
                 />
             ))}
             {Object.keys(typingUsers).length > 0 && (
