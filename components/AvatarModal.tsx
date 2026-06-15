@@ -1,5 +1,5 @@
 // components/AvatarModal.tsx
-import React from "react";
+import React, { useEffect } from "react";
 
 interface AvatarModalProps {
     showModal: boolean;
@@ -20,54 +20,78 @@ const AvatarModal: React.FC<AvatarModalProps> = ({
     changeAvatar,
     user,
 }) => {
+    useEffect(() => {
+        if (!showModal) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setShowModal(false);
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [showModal, setShowModal]);
+
     if (!showModal || !modalUser) return null;
+    const isSelf = modalUser === user;
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-            {/* Backdrop */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div
-                className="absolute inset-0 bg-black opacity-50"
+                className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
                 onClick={() => setShowModal(false)}
-            ></div>
-            {/* Modal Content */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 z-10 max-w-md w-full">
+            />
+            <div className="relative z-10 w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/70 rounded-2xl p-6 shadow-xl">
+                <button
+                    onClick={() => setShowModal(false)}
+                    className="absolute top-3 right-3 p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    aria-label="Close"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
+                    </svg>
+                </button>
                 <div className="flex flex-col items-center">
-                    <img
-                        src={`https://api.dicebear.com/6.x/personas/svg?seed=${userAvatars[modalUser]}`}
-                        alt="Avatar"
-                        className="w-24 h-24 rounded-full mb-4"
-                    />
-                    <h2 className="text-xl font-semibold mb-2 text-black dark:text-white">
+                    <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-br from-indigo-500 to-violet-500 mb-3">
+                        <img
+                            src={`https://api.dicebear.com/6.x/personas/svg?seed=${userAvatars[modalUser]}`}
+                            alt={modalUser}
+                            className="w-full h-full rounded-full bg-white"
+                        />
+                    </div>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         {modalUser}
                     </h2>
-                    {/* Mock information */}
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
-                        This is some mock information about {modalUser}.
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                        {isSelf ? "This is you" : "Chat participant"}
                     </p>
-                    {modalUser === user && (
+
+                    {isSelf && (
                         <div className="w-full">
-                            <h3 className="text-lg font-semibold mb-2 text-black dark:text-white">
+                            <h3 className="text-xs uppercase tracking-wide font-medium mb-2 text-slate-500 dark:text-slate-400 text-center">
                                 Choose your avatar
                             </h3>
-                            <div className="flex space-x-4">
-                                {avatarOptions.map((avatarSeed) => (
-                                    <img
-                                        key={avatarSeed}
-                                        src={`https://api.dicebear.com/6.x/personas/svg?seed=${avatarSeed}`}
-                                        alt="Avatar Option"
-                                        className="w-16 h-16 rounded-full cursor-pointer border-2 border-transparent hover:border-blue-500"
-                                        onClick={() => changeAvatar(avatarSeed)}
-                                    />
-                                ))}
+                            <div className="flex flex-wrap justify-center gap-3">
+                                {avatarOptions.map((avatarSeed) => {
+                                    const active = userAvatars[user] === avatarSeed;
+                                    return (
+                                        <button
+                                            key={avatarSeed}
+                                            onClick={() => changeAvatar(avatarSeed)}
+                                            className={`rounded-full p-0.5 transition ${
+                                                active
+                                                    ? "ring-2 ring-indigo-500 bg-gradient-to-br from-indigo-500/20 to-violet-500/20"
+                                                    : "ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-indigo-400"
+                                            }`}
+                                        >
+                                            <img
+                                                src={`https://api.dicebear.com/6.x/personas/svg?seed=${avatarSeed}`}
+                                                alt={avatarSeed}
+                                                className="w-14 h-14 rounded-full bg-white"
+                                            />
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
-                    <button
-                        onClick={() => setShowModal(false)}
-                        className="mt-6 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
-                    >
-                        Close
-                    </button>
                 </div>
             </div>
         </div>
