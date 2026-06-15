@@ -3,53 +3,63 @@
 @tailwind utilities;
 
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    --background: #fafafa;
+    --foreground: #0f172a;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
-    }
+html.dark {
+    --background: #0b1020;
+    --foreground: #e2e8f0;
 }
 
 body {
     color: var(--foreground);
     background: var(--background);
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+        "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-image:
+        radial-gradient(1200px 600px at 10% -10%, rgba(99, 102, 241, 0.10), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, rgba(139, 92, 246, 0.10), transparent 60%);
+    background-attachment: fixed;
 }
 
-/* styles/globals.css */
+html.dark body {
+    background-image:
+        radial-gradient(1200px 600px at 10% -10%, rgba(99, 102, 241, 0.18), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, rgba(139, 92, 246, 0.18), transparent 60%);
+}
 
-/* Light Mode */
+/* Scrollbars */
 html {
     scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 #f1f5f9; /* Thumb color, Track color */
+    scrollbar-color: #cbd5e1 transparent;
 }
 
-html::-webkit-scrollbar {
-    width: 8px;
+html::-webkit-scrollbar { width: 8px; }
+html::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+html::-webkit-scrollbar-track { background-color: transparent; }
+
+html.dark { scrollbar-color: #334155 transparent; }
+html.dark::-webkit-scrollbar-thumb { background-color: #334155; }
+
+/* Subtle pulse for typing dots */
+@keyframes chatzy-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-3px); opacity: 1; }
 }
 
-html::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
-    border-radius: 10px;
+.chatzy-dot {
+    animation: chatzy-bounce 1.2s infinite ease-in-out;
+}
+.chatzy-dot:nth-child(2) { animation-delay: 0.15s; }
+.chatzy-dot:nth-child(3) { animation-delay: 0.3s; }
+
+/* Message bubble entrance */
+@keyframes chatzy-pop {
+    from { opacity: 0; transform: translateY(4px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-html::-webkit-scrollbar-track {
-    background-color: #f1f5f9;
-}
-
-/* Dark Mode */
-html.dark {
-    scrollbar-color: #4b5563 #1f2937; /* Thumb color, Track color */
-}
-
-html.dark::-webkit-scrollbar-thumb {
-    background-color: #4b5563;
-}
-
-html.dark::-webkit-scrollbar-track {
-    background-color: #1f2937;
+.chatzy-pop {
+    animation: chatzy-pop 160ms ease-out;
 }
